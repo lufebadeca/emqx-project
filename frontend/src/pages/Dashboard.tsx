@@ -11,7 +11,7 @@ import type { Device } from "../types";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState<Device[]>([]);
-  const { lastMessages, sendCommand } = useSocket();
+  const { connected, lastMessages, sendCommand } = useSocket();
 
   useEffect(() => {
     fetchDevices().then(setDevices);
@@ -67,6 +67,7 @@ export default function Dashboard() {
                   <Pencil className="w-4 h-4" />
                 </Link>
                 <button
+                  type="button"
                   onClick={() => handleDelete(device._id)}
                   className="p-1.5 rounded hover:bg-gray-800 text-gray-400 hover:text-red-400 transition"
                 >
@@ -86,7 +87,8 @@ export default function Dashboard() {
                       key={w._id}
                       label={w.label}
                       value={value === "1" || value.toLowerCase() === "on"}
-                      onChange={(v) => sendCommand(device._id, w.topicId, v ? "1" : "0")}
+                      onChange={(v) => sendCommand(device._id, device.baseTopic, w.topicId, v ? "1" : "0")}
+                      disabled={!connected}
                     />
                   );
                 }
@@ -99,7 +101,8 @@ export default function Dashboard() {
                       value={Number(value) || 0}
                       min={w.min ?? 0}
                       max={w.max ?? 100}
-                      onChange={(v) => sendCommand(device._id, w.topicId, String(v))}
+                      onChange={(v) => sendCommand(device._id, device.baseTopic, w.topicId, String(v))}
+                      disabled={!connected}
                     />
                   );
                 }

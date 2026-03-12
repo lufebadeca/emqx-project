@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
+import type React from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { io, type Socket } from "socket.io-client";
 
 interface DeviceData {
   baseTopic: string;
@@ -10,7 +11,7 @@ interface DeviceData {
 interface SocketContextValue {
   connected: boolean;
   lastMessages: Map<string, string>; // key = `${baseTopic}/${topicId}`
-  sendCommand: (deviceId: string, topicId: string, value: string) => void;
+  sendCommand: (deviceId: string, baseTopic: string, topicId: string, value: string) => void;
 }
 
 const SocketContext = createContext<SocketContextValue>({
@@ -47,7 +48,13 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   }, []);
 
-  const sendCommand = useCallback((deviceId: string, topicId: string, value: string) => {
+  const sendCommand = useCallback((deviceId: string, baseTopic: string, topicId: string, value: string) => {
+    const key = `${baseTopic}/${topicId}`;
+    setLastMessages((prev) => {
+      const next = new Map(prev);
+      next.set(key, value);
+      return next;
+    });
     socketRef.current?.emit("command", { deviceId, topicId, value });
   }, []);
 

@@ -15,6 +15,7 @@ export default function DeviceForm() {
   const [baseTopic, setBaseTopic] = useState("");
   const [icon, setIcon] = useState("cpu");
   const [widgets, setWidgets] = useState<WidgetFormData[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -37,14 +38,19 @@ export default function DeviceForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     const payload = { name, baseTopic, icon, widgets };
 
-    if (isEdit && id) {
-      await updateDevice(id, payload);
-    } else {
-      await createDevice(payload);
+    try {
+      if (isEdit && id) {
+        await updateDevice(id, payload);
+      } else {
+        await createDevice(payload);
+      }
+      navigate("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar el dispositivo");
     }
-    navigate("/");
   };
 
   const inputCls = "w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500";
@@ -55,6 +61,11 @@ export default function DeviceForm() {
       <h1 className="text-2xl font-bold mb-6">{isEdit ? "Editar" : "Nuevo"} Dispositivo</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="bg-red-900/50 border border-red-600 text-red-200 rounded-lg px-4 py-3 text-sm">
+            {error}
+          </div>
+        )}
         {/* Device info */}
         <div className="grid sm:grid-cols-3 gap-4">
           <div className="sm:col-span-1">
