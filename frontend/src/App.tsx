@@ -1,8 +1,9 @@
 import { Routes, Route, Link } from "react-router-dom";
-import { Activity, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useSocket } from "./context/SocketContext";
 import Dashboard from "./pages/Dashboard";
 import DeviceForm from "./pages/DeviceForm";
+import sharkieImg from "./public/sharkie.png";
 
 export default function App() {
   const { connected } = useSocket();
@@ -13,8 +14,8 @@ export default function App() {
       <nav className="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-lg font-semibold">
-            <Activity className="w-5 h-5 text-emerald-400" />
-            EMQ IoT
+            <img src={sharkieImg} alt="" className="h-10 w-auto object-contain" />
+            Sharkie IoT
           </Link>
           <div className="flex items-center gap-4">
             <span className={`flex items-center gap-1.5 text-xs ${connected ? "text-emerald-400" : "text-red-400"}`}>

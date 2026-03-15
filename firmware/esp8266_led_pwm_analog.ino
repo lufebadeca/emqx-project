@@ -1,11 +1,10 @@
 /*
- * EMQ IoT — ESP8266: LED PWM (D6) + lectura analógica (A0)
- * Un solo dispositivo en la app: widget slider (led1) + widget viewer (temp).
+ * EMQ IoT — ESP8266: LED PWM (D6) + Motor ON/OFF (D7) + lectura analógica (A0)
  *
- * Configura en la app:
- * - Dispositivo baseTopic: home/esp8266
- * - Widget 1: Slider, topicId led1, min 0, max 255
- * - Widget 2: Viewer, topicId temp, min 0, max 1023 (o la escala que uses)
+ * Configura en la app (mismo dispositivo, baseTopic: home/esp8266):
+ * - Widget 1: Slider,  topicId led1,   min 0, max 255   → D6 (GPIO12) PWM
+ * - Widget 2: Switch,  topicId motor1                  → D7 (GPIO13) ON/OFF
+ * - Widget 3: Viewer,  topicId temp,   min 0, max 1023  → A0
  */
 
 #include <ESP8266WiFi.h>
@@ -21,6 +20,9 @@ const char* BASE_TOPIC    = "home/esp8266";
 // Pin LED con PWM (D6 = GPIO12 en NodeMCU/ESP8266)
 // LED: no quitar la resistencia. 3.3V con R ~220–330 Ohm es seguro y da buena luz.
 #define LED_PIN 12
+
+// Motor ON/OFF (D7 = GPIO13 en NodeMCU/ESP8266). Usar driver/relevé; el pin solo da 3.3V.
+#define MOTOR_PIN 13
 
 WiFiClient espClient;
 PubSubClient mqtt(espClient);
@@ -58,6 +60,9 @@ void mqttCallback(char* topic, byte* payload, unsigned int length) {
     if (v < 0) v = 0;
     if (v > 255) v = 255;
     analogWrite(LED_PIN, v);
+  } else if (topicId == "motor1") {
+    int v = atoi(value);
+    digitalWrite(MOTOR_PIN, (v != 0) ? HIGH : LOW);
   }
 }
 
@@ -66,6 +71,8 @@ void setup() {
   Serial.begin(9600);
   pinMode(LED_PIN, OUTPUT);
   analogWrite(LED_PIN, 0);
+  pinMode(MOTOR_PIN, OUTPUT);
+  digitalWrite(MOTOR_PIN, LOW);
 
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
