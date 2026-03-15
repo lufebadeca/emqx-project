@@ -1,3 +1,5 @@
+export type IconColorKey = "primary" | "danger" | "success" | "warning" | "muted" | "info";
+
 export interface Widget {
   _id: string;
   type: "switch" | "slider" | "viewer";
@@ -6,6 +8,8 @@ export interface Widget {
   lastValue: string;
   min?: number;
   max?: number;
+  icon?: string;
+  iconColor?: IconColorKey;
 }
 
 export interface Device {
@@ -13,6 +17,7 @@ export interface Device {
   name: string;
   baseTopic: string;
   icon: string;
+  iconColor?: IconColorKey;
   widgets: Widget[];
   online: boolean;
   createdAt: string;
@@ -25,4 +30,6 @@ export interface WidgetFormData {
   topicId: string;
   min?: number;
   max?: number;
+  icon?: string;
+  iconColor?: IconColorKey;
 }

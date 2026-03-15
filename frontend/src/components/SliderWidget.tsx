@@ -5,13 +5,17 @@ interface Props {
   max: number;
   onChange: (value: number) => void;
   disabled?: boolean;
+  icon?: React.ReactNode;
 }
 
-export default function SliderWidget({ label, value, min, max, onChange, disabled = false }: Props) {
+export default function SliderWidget({ label, value, min, max, onChange, disabled = false, icon }: Props) {
   return (
     <div className={`bg-gray-800/50 rounded-lg px-4 py-3 ${disabled ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm">{label}</span>
+        <span className="flex items-center gap-2 text-sm">
+          {icon}
+          {label}
+        </span>
         <span className="text-xs font-mono text-emerald-400">{value}</span>
       </div>
       <input

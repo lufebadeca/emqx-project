@@ -2,9 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Plus, X } from "lucide-react";
 import { createDevice, fetchDevice, updateDevice } from "../api";
-import type { WidgetFormData } from "../types";
+import IconPicker from "../components/IconPicker";
+import IconColorPicker from "../components/IconColorPicker";
+import WidgetTypeSelect from "../components/WidgetTypeSelect";
+import { getIconColorClass } from "../lib/iconColors";
+import type { WidgetFormData, IconColorKey } from "../types";
 
-const EMPTY_WIDGET: WidgetFormData = { type: "switch", label: "", topicId: "", min: 0, max: 100 };
+const EMPTY_WIDGET: WidgetFormData = { type: "switch", label: "", topicId: "", min: 0, max: 100, icon: "", iconColor: "primary" };
 
 export default function DeviceForm() {
   const { id } = useParams();
@@ -14,6 +18,7 @@ export default function DeviceForm() {
   const [name, setName] = useState("");
   const [baseTopic, setBaseTopic] = useState("");
   const [icon, setIcon] = useState("cpu");
+  const [iconColor, setIconColor] = useState<IconColorKey>("primary");
   const [widgets, setWidgets] = useState<WidgetFormData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +28,16 @@ export default function DeviceForm() {
         setName(d.name);
         setBaseTopic(d.baseTopic);
         setIcon(d.icon);
-        setWidgets(d.widgets.map((w) => ({ type: w.type, label: w.label, topicId: w.topicId, min: w.min, max: w.max })));
+        setIconColor((d.iconColor as IconColorKey) ?? "primary");
+        setWidgets(d.widgets.map((w) => ({
+          type: w.type,
+          label: w.label,
+          topicId: w.topicId,
+          min: w.min,
+          max: w.max,
+          icon: w.icon ?? "",
+          iconColor: (w.iconColor as IconColorKey) ?? "primary",
+        })));
       });
     }
   }, [id]);
@@ -39,7 +53,7 @@ export default function DeviceForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    const payload = { name, baseTopic, icon, widgets };
+    const payload = { name, baseTopic, icon, iconColor, widgets };
 
     try {
       if (isEdit && id) {
@@ -67,18 +81,24 @@ export default function DeviceForm() {
           </div>
         )}
         {/* Device info */}
-        <div className="grid sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-1">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
             <label className={labelCls}>Nombre</label>
             <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
-          <div className="sm:col-span-1">
+          <div>
             <label className={labelCls}>Base Topic</label>
-            <input className={inputCls} value={baseTopic} onChange={(e) => setBaseTopic(e.target.value)} placeholder="home/esp32-01" required />
+            <input className={inputCls} value={baseTopic} onChange={(e) => setBaseTopic(e.target.value)} placeholder="home/esp8266" required />
           </div>
-          <div className="sm:col-span-1">
-            <label className={labelCls}>Icono (Lucide)</label>
-            <input className={inputCls} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="cpu" />
+          <div className="sm:col-span-2">
+            <label className={labelCls} htmlFor="device-icon-picker">Icono</label>
+            <div className="flex items-center gap-2">
+              <IconPicker id="device-icon-picker" value={icon} onChange={setIcon} iconColorClass={getIconColorClass(iconColor)} />
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500 mb-1">Color</span>
+                <IconColorPicker value={iconColor} onChange={setIconColor} id="device-icon-color" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -107,11 +127,7 @@ export default function DeviceForm() {
                 <div className="grid sm:grid-cols-4 gap-3">
                   <div>
                     <label className={labelCls}>Tipo</label>
-                    <select className={inputCls} value={w.type} onChange={(e) => updateWidget(i, "type", e.target.value)}>
-                      <option value="switch">Switch (ON/OFF)</option>
-                      <option value="slider">Slider (Nivel)</option>
-                      <option value="viewer">Viewer (Solo lectura)</option>
-                    </select>
+                    <WidgetTypeSelect value={w.type} onChange={(v) => updateWidget(i, "type", v)} />
                   </div>
                   <div>
                     <label className={labelCls}>Label</label>
@@ -120,6 +136,25 @@ export default function DeviceForm() {
                   <div>
                     <label className={labelCls}>Topic ID</label>
                     <input className={inputCls} value={w.topicId} onChange={(e) => updateWidget(i, "topicId", e.target.value)} placeholder="led1" required />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Icono (opcional)</label>
+                    <div className="flex items-center gap-2">
+                      <IconPicker
+                        compact
+                        allowEmpty
+                        value={w.icon ?? ""}
+                        onChange={(v) => updateWidget(i, "icon", v)}
+                        id={`widget-icon-${i}`}
+                        iconColorClass={w.icon?.trim() ? getIconColorClass(w.iconColor) : undefined}
+                      />
+                      <IconColorPicker
+                        compact
+                        value={w.iconColor}
+                        onChange={(v) => updateWidget(i, "iconColor", v)}
+                        disabled={!w.icon?.trim()}
+                      />
+                    </div>
                   </div>
                   {(w.type === "slider" || w.type === "viewer") && (
                     <div className="flex gap-2">

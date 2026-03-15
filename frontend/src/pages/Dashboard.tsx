@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Pencil, Trash2 } from "lucide-react";
-import * as icons from "lucide-react";
+import { Pencil, Trash2, ToggleLeft, SlidersHorizontal, Gauge } from "lucide-react";
 import { fetchDevices, deleteDevice } from "../api";
 import { useSocket } from "../context/SocketContext";
 import SwitchWidget from "../components/SwitchWidget";
 import SliderWidget from "../components/SliderWidget";
 import LevelViewer from "../components/LevelViewer";
-import type { Device } from "../types";
+import { IconByName } from "../components/IconPicker";
+import { getIconColorClass } from "../lib/iconColors";
+import type { Device, Widget } from "../types";
 
 export default function Dashboard() {
   const [devices, setDevices] = useState<Device[]>([]);
@@ -22,11 +23,19 @@ export default function Dashboard() {
     setDevices((prev) => prev.filter((d) => d._id !== id));
   };
 
-  const getIcon = (name: string) => {
-    const Icon = (icons as Record<string, React.FC<{ className?: string }>>)[
-      name.charAt(0).toUpperCase() + name.slice(1)
-    ];
-    return Icon ? <Icon className="w-6 h-6 text-emerald-400" /> : null;
+  const getIcon = (name: string, color?: string) => {
+    if (!name?.trim()) return null;
+    const colorClass = getIconColorClass(color);
+    return <IconByName name={name} className={`w-6 h-6 ${colorClass}`} />;
+  };
+
+  const getWidgetIcon = (w: Widget) => {
+    const colorClass = `${getIconColorClass(w.iconColor)} w-4 h-4 flex-shrink-0`;
+    if (w.icon?.trim()) return <IconByName name={w.icon} className={colorClass} />;
+    if (w.type === "switch") return <ToggleLeft className={colorClass} />;
+    if (w.type === "slider") return <SlidersHorizontal className={colorClass} />;
+    if (w.type === "viewer") return <Gauge className={colorClass} />;
+    return null;
   };
 
   const getWidgetValue = (device: Device, topicId: string, lastValue: string) => {
@@ -53,7 +62,7 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                {getIcon(device.icon)}
+                {getIcon(device.icon, device.iconColor)}
                 <div>
                   <h2 className="font-semibold">{device.name}</h2>
                   <p className="text-xs text-gray-500 font-mono">{device.baseTopic}</p>
@@ -89,6 +98,7 @@ export default function Dashboard() {
                       value={value === "1" || value.toLowerCase() === "on"}
                       onChange={(v) => sendCommand(device._id, device.baseTopic, w.topicId, v ? "1" : "0")}
                       disabled={!connected}
+                      icon={getWidgetIcon(w)}
                     />
                   );
                 }
@@ -103,6 +113,7 @@ export default function Dashboard() {
                       max={w.max ?? 100}
                       onChange={(v) => sendCommand(device._id, device.baseTopic, w.topicId, String(v))}
                       disabled={!connected}
+                      icon={getWidgetIcon(w)}
                     />
                   );
                 }
@@ -115,6 +126,7 @@ export default function Dashboard() {
                       value={Number(value) || 0}
                       min={w.min ?? 0}
                       max={w.max ?? 100}
+                      icon={getWidgetIcon(w)}
                     />
                   );
                 }

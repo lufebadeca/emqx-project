@@ -11,9 +11,9 @@
 #include <PubSubClient.h>
 
 // --- CONFIGURACIÓN ---
-const char* WIFI_SSID     = "Epicentro Tech";
-const char* WIFI_PASS     = "Epicentro Tech01";
-const char* MQTT_HOST     = "192.168.1.53";
+const char* WIFI_SSID     = "BALDOVINO 2.4G";
+const char* WIFI_PASS     = "3012892827";
+const char* MQTT_HOST     = "192.168.1.4";
 const uint16_t MQTT_PORT  = 1883;
 const char* BASE_TOPIC    = "home/esp8266";
 
